@@ -46,9 +46,6 @@ const char* topico3out = "cdl/rele3out";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-char msg[50];
-//bool rele1in, rele2in, rele3in, rele1out, rele2out, rele3out = false; 
-//bool llave1, llave2, llave3;
 bool rele1, rele2, rele3;
 volatile bool interrupcion1, interrupcion2, interrupcion3 = false;
 volatile long tiempo_envio_anterior = 0;
@@ -76,13 +73,6 @@ void setup() {
 
 //Rutina de servicio de interrupcion llave 1
 void servicio_llave1(){
-    // if (rele1 == true)
-    // {
-    // 	rele1 = false;
-    // }else {
-    // 	rele1 = true;
-    // }
-    //llave1 = rele1;
     interrupcion1 = true;
     cambio = true;
     Serial.println("INT1");                                //DEBUG
@@ -90,13 +80,6 @@ void servicio_llave1(){
 
 //Rutina de servicio de interrupcion llave 2
 void servicio_llave2(){
-    // if (rele2 == true)
-    // {
-    // 	rele2 = false;
-    // }else {
-    // 	rele2 = true;
-    // }
-    //llave2 = rele2;    
     interrupcion2 = true;
     cambio = true;
     Serial.println("INT2");                                //DEBUG
@@ -104,13 +87,6 @@ void servicio_llave2(){
 
 //Rutina de servicio de interrupcion llave 3
 void servicio_llave3(){
-    // if (rele3 == true)
-    // {
-    // 	rele3 = false;
-    // }else {
-    // 	rele3 = true;
-    // }
-    //llave3 = rele3;
     interrupcion3 = true;
     cambio = true;
     Serial.println("INT3");                                //DEBUG
@@ -119,7 +95,7 @@ void servicio_llave3(){
 void setup_wifi() {
 
   delay(10);
-  // We start by connecting to a WiFi network
+  // Conexíon Wi-Fi
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -136,43 +112,6 @@ void setup_wifi() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
-
-// void callback(char* topic, byte* payload, unsigned int length) {
-
-//   	char* dato="";
-//   	char c;
-//   	int topico;
-//   	bool estado;
-
-//   	Serial.print("Message arrived [");                       	//DEBUG
-//   	Serial.print(topic);                                		//DEBUG
-//   	Serial.print("] ");                                		//DEBUG
-//   	for (int i = 0; i < length; i++) {
-//     	Serial.print((char)payload[i]);
-//     	dato += c;
-//   	}
-//  //  	if (topic == "cdl/rele1out") {
-// 	// 	topico = 1;
-// 	// }
-// 	// if (topic == "cdl/rele2out") {
-// 	// 	topico = 2;
-// 	// }
-// 	// if (topic == "cdl/rele3out") {
-// 	// 	topico = 3;
-// 	// }
-// 	// if (dato == "1") {
-// 	// 	estado = true;
-// 	// }
-// 	// else {
-// 	// 	estado = false;
-// 	// }
-
-// 	// toggle_rele(topico, estado);
-
-// 	Serial.println();                                		 	//DEBUG
-//   	Serial.print("------json------");Serial.println(dato);  	//DEBUG
-//   	dato = "";
-// }
 
 void callback(char* topic, byte* payload, unsigned int length) {
 
@@ -209,34 +148,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   dato = "";  
 }
 
-/*void toggle_rele(char* topic, char* dato){
-	bool estado_nuevo;
-	if (dato == "1") {estado_nuevo=true;}
-	else if (dato == "0")	{estado_nuevo=false;}
-	else {return;}
-	int topico;
-	if (topic == "cdl/rele1out")
-	{
-		topico = 1;
-	}
-	else if (topic == "cdl/rele2out") {
-		topico = 2;
-	}
-	else {
-		topico = 3;
-	}
-	switch (topico) {
-		case 1:
-			rele1=estado_nuevo;
-			break;
-		case 2:
-			rele2=estado_nuevo;
-			break;
-		case 3:
-			rele3=estado_nuevo;
-			break;
-	}
-}*/
 void toggle_rele(int rele){
 	
   Serial.print("toggle_rele"); 
@@ -257,7 +168,6 @@ void toggle_rele(int rele){
 		  	else {digitalWrite(pin_rele3, LOW); rele3=false;}
 			break;
 	}
-	//llave3 = rele3;
 }
 
 void toggle_rele_web(String topic, String dato){
@@ -281,19 +191,16 @@ void toggle_rele_web(String topic, String dato){
 	switch (topico) {
 		case 1:
 			//Actualiza el estado del rele 1
-			//rele1=estado_nuevo;
 			if (estado_nuevo && estado_nuevo != rele1) {digitalWrite(pin_rele1, HIGH);rele1=true; cambio=true;}
   		if (!estado_nuevo && estado_nuevo != rele1){digitalWrite(pin_rele1, LOW);rele1=false; cambio=true;}
 			break;
 		case 2:
 			//Actualiza el estado del rele 2
-			//rele2=estado_nuevo;
       if (estado_nuevo && estado_nuevo != rele2) {digitalWrite(pin_rele2, HIGH);rele2=true; cambio=true;}
       if (!estado_nuevo && estado_nuevo != rele2){digitalWrite(pin_rele2, LOW);rele2=false; cambio=true;}
 			break;
 		case 3:
 			//Actualiza el estado del rele 3
-			//rele3=estado_nuevo;
       if (estado_nuevo && estado_nuevo != rele3) {digitalWrite(pin_rele3, HIGH);rele3=true; cambio=true;}
       if (!estado_nuevo && estado_nuevo != rele3){digitalWrite(pin_rele3, LOW);rele3=false; cambio=true;}
 			break;
@@ -330,10 +237,6 @@ void enviar_estado(bool estado_rele, String topic) {
 }
 
 void loop() {
-	//Actualiza el estado del rele 1
-	// rele1 = digitalRead(pin_rele1);
-	// rele2 = digitalRead(pin_rele2);
-	// rele3 = digitalRead(pin_rele3);
   if (!client.connected()) {
     reconnect();
   }
@@ -344,18 +247,6 @@ void loop() {
 	if (interrupcion1) {toggle_rele(1);interrupcion1 = false;}	
 	if (interrupcion2) {toggle_rele(2);interrupcion2 = false;}
 	if (interrupcion3) {toggle_rele(3);interrupcion3 = false;}
-
-	//Actualiza el estado de los relés cuando se recibe un mensaje MQTT del servidor (cambio de estado un botón en el panel web)
-
-
-  	// if (rele1) {digitalWrite(pin_rele1, HIGH); rele1=1;}
-  	// else {digitalWrite(pin_rele1, LOW); rele1=0;}
-  	// //Actualiza el estado del rele 2
-  	// if (rele2) {digitalWrite(pin_rele2, HIGH); rele1=1;}
-  	// else {digitalWrite(pin_rele2, LOW); rele2=0;}
-   //  //Actualiza el estado del rele 3
-  	// if (rele3) {digitalWrite(pin_rele3, HIGH); rele3=1;}
-  	// else {digitalWrite(pin_rele3, LOW); rele3=0;}
 
 	//Envia el estado de los reles
     if (cambio && (millis() > tiempo_envio_anterior + 3000)) {
