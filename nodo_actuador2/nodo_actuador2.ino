@@ -33,8 +33,8 @@ cdl/rele3out
 
 const char* ssid = "Fibertel WiFi027 2.4GHz";
 const char* password = "0043591365";
-//const char* ssid = "arce";
-//const char* password = "rosacarlos1856";
+// const char* ssid = "arce";
+// const char* password = "rosacarlos1856";
 const char* mqtt_server = "sambrana.com.ar";
 
 const char* topico1in = "cdl/rele1in";
@@ -52,6 +52,7 @@ char msg[50];
 bool rele1, rele2, rele3;
 volatile bool interrupcion1, interrupcion2, interrupcion3 = false;
 volatile long tiempo_envio_anterior = 0;
+volatile bool cambio = true;
 
 void setup() {
 
@@ -83,6 +84,7 @@ void servicio_llave1(){
     // }
     //llave1 = rele1;
     interrupcion1 = true;
+    cambio = true;
     Serial.println("INT1");                                //DEBUG
 }
 
@@ -96,6 +98,7 @@ void servicio_llave2(){
     // }
     //llave2 = rele2;    
     interrupcion2 = true;
+    cambio = true;
     Serial.println("INT2");                                //DEBUG
 }
 
@@ -109,6 +112,7 @@ void servicio_llave3(){
     // }
     //llave3 = rele3;
     interrupcion3 = true;
+    cambio = true;
     Serial.println("INT3");                                //DEBUG
 }
 
@@ -174,15 +178,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   String dato="";
   char c;
+  char buffer[50];
+  int i;
 
   Serial.print("Message arrived [");                      //DEBUG
   Serial.print(topic);                                    //DEBUG 
   Serial.print("] ");                                     //DEBUG 
-  for (int i = 0; i < length; i++) {
+  for (i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
-    c = (char)payload[i];
-    dato += c;
+    buffer[i] = payload[i];
   }
+  buffer[i] ='\0';
+  dato = String(buffer);
   Serial.println();                                       //DEBUG
   Serial.print("------json------");Serial.println(dato);  //DEBUG
 
@@ -199,8 +206,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
     toggle_rele_web("cdl/rele3out", dato);
   }  
 
-  
-  toggle_rele_web(topic, dato);
   dato = "";  
 }
 
@@ -234,6 +239,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }*/
 void toggle_rele(int rele){
 	
+  Serial.print("toggle_rele"); 
 	switch (rele) {
 		case 1:
 			//Actualiza el estado del rele 1
@@ -255,42 +261,41 @@ void toggle_rele(int rele){
 }
 
 void toggle_rele_web(String topic, String dato){
-	bool estado_nuevo;
-	if (dato == "1") {estado_nuevo=true;}
-	else if (dato == "0") {estado_nuevo=false;}
-	else {return;}
-	int topico;
+  Serial.print("toggle_rele_web****"); 
+	bool estado_nuevo = false;
+  int topico;
+	if (strcmp(dato.c_str(), "1")==0) {estado_nuevo=true;}
+	if (strcmp(dato.c_str(), "0")==0) {estado_nuevo=false;}
   Serial.print("toggle_rele_web: "); 
   Serial.println(dato);Serial.print(" - bool "); 
   Serial.println(estado_nuevo);
-	if (topic == "cdl/rele1out")
-	{
+	if (strcmp(topic.c_str(), "cdl/rele1out")==0) {
 		topico = 1;
 	}
-	else if (topic == "cdl/rele2out") {
+	if (strcmp(topic.c_str(), "cdl/rele2out")==0) {
 		topico = 2;
 	}
-	else {
-		topico = 3;
-	}
+	if (strcmp(topic.c_str(), "cdl/rele3out")==0) {
+    topico = 3;
+  }
 	switch (topico) {
 		case 1:
 			//Actualiza el estado del rele 1
-			rele1=estado_nuevo;
-			if (rele1) {digitalWrite(pin_rele1, HIGH);}
-  			else {digitalWrite(pin_rele1, LOW);}
+			//rele1=estado_nuevo;
+			if (estado_nuevo && estado_nuevo != rele1) {digitalWrite(pin_rele1, HIGH);rele1=true; cambio=true;}
+  		if (!estado_nuevo && estado_nuevo != rele1){digitalWrite(pin_rele1, LOW);rele1=false; cambio=true;}
 			break;
 		case 2:
 			//Actualiza el estado del rele 2
-			rele2=estado_nuevo;
-		  	if (rele2) {digitalWrite(pin_rele2, HIGH);}
-		  	else {digitalWrite(pin_rele2, LOW);}
+			//rele2=estado_nuevo;
+      if (estado_nuevo && estado_nuevo != rele2) {digitalWrite(pin_rele2, HIGH);rele2=true; cambio=true;}
+      if (!estado_nuevo && estado_nuevo != rele2){digitalWrite(pin_rele2, LOW);rele2=false; cambio=true;}
 			break;
 		case 3:
 			//Actualiza el estado del rele 3
-			rele3=estado_nuevo;
-		  	if (rele3) {digitalWrite(pin_rele3, HIGH);}
-		  	else {digitalWrite(pin_rele3, LOW);}
+			//rele3=estado_nuevo;
+      if (estado_nuevo && estado_nuevo != rele3) {digitalWrite(pin_rele3, HIGH);rele3=true; cambio=true;}
+      if (!estado_nuevo && estado_nuevo != rele3){digitalWrite(pin_rele3, LOW);rele3=false; cambio=true;}
 			break;
 	}
 }
@@ -329,6 +334,10 @@ void loop() {
 	// rele1 = digitalRead(pin_rele1);
 	// rele2 = digitalRead(pin_rele2);
 	// rele3 = digitalRead(pin_rele3);
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
 
 
 	//Actualiza el estado de los relés cuando ocurre una interrupción (cambio de estado un botón)
@@ -349,8 +358,7 @@ void loop() {
   	// else {digitalWrite(pin_rele3, LOW); rele3=0;}
 
 	//Envia el estado de los reles
-    if (millis() > tiempo_envio_anterior + 3000)
-    {
+    if (cambio && (millis() > tiempo_envio_anterior + 3000)) {
       enviar_estado(rele1, "cdl/rele1in");
       enviar_estado(rele2, "cdl/rele2in");
       enviar_estado(rele3, "cdl/rele3in");
@@ -358,6 +366,7 @@ void loop() {
       Serial.print("Rele1: ");Serial.println(rele1);
       Serial.print("Rele2: ");Serial.println(rele2);
       Serial.print("Rele3: ");Serial.println(rele3);
+      cambio = false;
     }
 	  
     
