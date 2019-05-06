@@ -100,7 +100,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);                                    //DEBUG 
   Serial.print("] ");                                     //DEBUG 
   for (int i = 0; i < length; i++) {
-    //Serial.print((char)payload[i]);
+    c = (char)payload[i];
     dato += c;
   }
   Serial.println();                                       //DEBUG
@@ -117,10 +117,6 @@ void reconnect() {
     // Attempt to connect
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");                        //DEBUG
-      // Once connected, publish an announcement...
-      //client.publish("/modulosensor", "hello world");
-      // ... and resubscribe
-      //client.subscribe("inTopic");
     } else {
       Serial.print("failed, rc=");                        //DEBUG
       Serial.print(client.state());                       //DEBUG
@@ -133,8 +129,6 @@ void reconnect() {
 
 void leer_sensores() {
   dht11.read(humedad, temperatura);
-  //humedad = 70.5;
-  //temperatura = 28.0;
   luz = analogRead(sensor_ldr);
   Serial.print("luz: ");Serial.println(luz);
   presencia = digitalRead(sensor_pir);
@@ -149,21 +143,15 @@ void loop() {
       reconnect();
     }
     client.loop();
-    // snprintf (msg, 75, "hello world #%ld");             
-    // Serial.print("Publish message: ");                    //DEBUG
-    // Serial.println(msg);                                  //DEBUG
     if (presencia){
       client.publish("cdl/presencia", "1");
     }else {
       client.publish("cdl/presencia", "0");
     }
-    //String dato = String(luz);
     snprintf (msg, 50, "%4i", luz );
     client.publish("cdl/luz", msg);
-    //dato = String(humedad);
     snprintf (msg, 50, "%f", humedad );
     client.publish("cdl/humedad", msg);
-    //dato = String(temperatura);
     snprintf (msg, 50, "%f", temperatura );
     client.publish("cdl/temperatura", msg);
     interrupcion = false;
