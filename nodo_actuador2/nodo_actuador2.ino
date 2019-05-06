@@ -304,7 +304,6 @@ void reconnect() {
     client.subscribe("cdl/rele1out");
     client.subscribe("cdl/rele2out");
     client.subscribe("cdl/rele3out");
-    return client.connected();
     }
     else {
       Serial.print("failed, rc=");                          //DEBUG
