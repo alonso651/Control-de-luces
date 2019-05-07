@@ -22,12 +22,18 @@ cdl/rele3out
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define pin_rele1 D1
-#define pin_rele2 D2
-#define pin_rele3 D3
-#define pin_llave1 D5
-#define pin_llave2 D6
-#define pin_llave3 D8
+#define pin_rele1 5   //D1
+#define pin_rele2 4   //D2
+#define pin_rele3 0   //D3
+#define pin_rele4 2   //D4
+#define pin_rele5 14 //D5
+#define pin_rele6 10  //SD3
+#define pin_llave1 16  //D0
+#define pin_llave2 12 //D6
+#define pin_llave3 13 //D7
+#define pin_llave4 15 //D8
+#define pin_llave5 3  //RX
+#define pin_llave6 1  //TX
 
 
 
@@ -40,9 +46,15 @@ const char* mqtt_server = "sambrana.com.ar";
 const char* topico1in = "cdl/rele1in";
 const char* topico2in = "cdl/rele2in";
 const char* topico3in = "cdl/rele3in";
+const char* topico4in = "cdl/rele4in";
+const char* topico5in = "cdl/rele5in";
+const char* topico6in = "cdl/rele6in";
 const char* topico1out = "cdl/rele1out";
 const char* topico2out = "cdl/rele2out";
 const char* topico3out = "cdl/rele3out";
+const char* topico4out = "cdl/rele4out";
+const char* topico5out = "cdl/rele5out";
+const char* topico6out = "cdl/rele6out";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -57,9 +69,15 @@ void setup() {
   pinMode(pin_llave1, INPUT);
   pinMode(pin_llave2, INPUT);
   pinMode(pin_llave3, INPUT);
+  pinMode(pin_llave4, INPUT);
+  pinMode(pin_llave5, INPUT);
+  pinMode(pin_llave6, INPUT);
   pinMode(pin_rele1, OUTPUT);
   pinMode(pin_rele2, OUTPUT);
   pinMode(pin_rele3, OUTPUT);
+  pinMode(pin_rele4, OUTPUT);
+  pinMode(pin_rele5, OUTPUT);
+  pinMode(pin_rele6, OUTPUT);
 
   Serial.begin(115200);                                		//DEBUG
   setup_wifi();
@@ -68,6 +86,9 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(pin_llave1),servicio_llave1,CHANGE);
   attachInterrupt(digitalPinToInterrupt(pin_llave2),servicio_llave2,CHANGE);
   attachInterrupt(digitalPinToInterrupt(pin_llave3),servicio_llave3,CHANGE);
+  attachInterrupt(digitalPinToInterrupt(pin_llave4),servicio_llave4,CHANGE);
+  attachInterrupt(digitalPinToInterrupt(pin_llave5),servicio_llave5,CHANGE);
+  attachInterrupt(digitalPinToInterrupt(pin_llave6),servicio_llave6,CHANGE);
   reconnect();
 }
 
@@ -90,6 +111,27 @@ void servicio_llave3(){
     interrupcion3 = true;
     cambio = true;
     Serial.println("INT3");                                //DEBUG
+}
+
+//Rutina de servicio de interrupcion llave 3
+void servicio_llave4(){
+    interrupcion4 = true;
+    cambio = true;
+    Serial.println("INT4");                                //DEBUG
+}
+
+//Rutina de servicio de interrupcion llave 3
+void servicio_llave5(){
+    interrupcion5 = true;
+    cambio = true;
+    Serial.println("INT5");                                //DEBUG
+}
+
+//Rutina de servicio de interrupcion llave 3
+void servicio_llave6(){
+    interrupcion6 = true;
+    cambio = true;
+    Serial.println("INT6");                                //DEBUG
 }
 
 void setup_wifi() {
@@ -145,6 +187,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
     toggle_rele_web("cdl/rele3out", dato);
   }  
 
+  if (strcmp(topic,"cdl/rele4out")==0) {
+    toggle_rele_web("cdl/rele4out", dato);
+  }
+
+  if (strcmp(topic,"cdl/rele5out")==0) {
+    toggle_rele_web("cdl/rele5out", dato);
+  } 
+
+  if (strcmp(topic,"cdl/rele6out")==0) {
+    toggle_rele_web("cdl/rele6out", dato);
+  }  
+
   dato = "";  
 }
 
@@ -162,11 +216,26 @@ void toggle_rele(int rele){
 		  	if (!rele2) {digitalWrite(pin_rele2, HIGH); rele2=true;}
 		  	else {digitalWrite(pin_rele2, LOW); rele2=false;}
 			break;
-		case 3:
-			//Actualiza el estado del rele 3
-		  	if (!rele3) {digitalWrite(pin_rele3, HIGH); rele3=true;}
-		  	else {digitalWrite(pin_rele3, LOW); rele3=false;}
-			break;
+    case 3:
+      //Actualiza el estado del rele 3
+        if (!rele3) {digitalWrite(pin_rele3, HIGH); rele3=true;}
+        else {digitalWrite(pin_rele3, LOW); rele3=false;}
+      break;
+    case 4:
+      //Actualiza el estado del rele 3
+        if (!rele4) {digitalWrite(pin_rele4, HIGH); rele4=true;}
+        else {digitalWrite(pin_rele4, LOW); rele4=false;}
+      break;
+    case 5:
+      //Actualiza el estado del rele 5
+        if (!rele5) {digitalWrite(pin_rele5, HIGH); rele5=true;}
+        else {digitalWrite(pin_rele5, LOW); rele5=false;}
+      break;
+    case 6:
+      //Actualiza el estado del rele 6
+        if (!rele6) {digitalWrite(pin_rele6, HIGH); rele6=true;}
+        else {digitalWrite(pin_rele6, LOW); rele6=false;}
+      break;
 	}
 }
 
@@ -185,8 +254,17 @@ void toggle_rele_web(String topic, String dato){
 	if (strcmp(topic.c_str(), "cdl/rele2out")==0) {
 		topico = 2;
 	}
-	if (strcmp(topic.c_str(), "cdl/rele3out")==0) {
+  if (strcmp(topic.c_str(), "cdl/rele3out")==0) {
     topico = 3;
+  }
+  if (strcmp(topic.c_str(), "cdl/rele4out")==0) {
+    topico = 4;
+  }
+  if (strcmp(topic.c_str(), "cdl/rele5out")==0) {
+    topico = 5;
+  }
+  if (strcmp(topic.c_str(), "cdl/rele6out")==0) {
+    topico = 6;
   }
 	switch (topico) {
 		case 1:
@@ -199,12 +277,27 @@ void toggle_rele_web(String topic, String dato){
       if (estado_nuevo && estado_nuevo != rele2) {digitalWrite(pin_rele2, HIGH);rele2=true; cambio=true;}
       if (!estado_nuevo && estado_nuevo != rele2){digitalWrite(pin_rele2, LOW);rele2=false; cambio=true;}
 			break;
-		case 3:
-			//Actualiza el estado del rele 3
+    case 3:
+      //Actualiza el estado del rele 3
       if (estado_nuevo && estado_nuevo != rele3) {digitalWrite(pin_rele3, HIGH);rele3=true; cambio=true;}
       if (!estado_nuevo && estado_nuevo != rele3){digitalWrite(pin_rele3, LOW);rele3=false; cambio=true;}
-			break;
-	}
+      break;
+    case 4:
+      //Actualiza el estado del rele 4
+      if (estado_nuevo && estado_nuevo != rele4) {digitalWrite(pin_rele4, HIGH);rele4=true; cambio=true;}
+      if (!estado_nuevo && estado_nuevo != rele4){digitalWrite(pin_rele4, LOW);rele4=false; cambio=true;}
+      break;
+    case 5:
+      //Actualiza el estado del rele 5
+      if (estado_nuevo && estado_nuevo != rele5) {digitalWrite(pin_rele5, HIGH);rele5=true; cambio=true;}
+      if (!estado_nuevo && estado_nuevo != rele5){digitalWrite(pin_rele5, LOW);rele5=false; cambio=true;}
+      break;
+    case 6:
+      //Actualiza el estado del rele 6
+      if (estado_nuevo && estado_nuevo != rele6) {digitalWrite(pin_rele6, HIGH);rele6=true; cambio=true;}
+      if (!estado_nuevo && estado_nuevo != rele6){digitalWrite(pin_rele6, LOW);rele6=false; cambio=true;}
+      break;
+  }
 }
 
 void reconnect() {
@@ -216,6 +309,9 @@ void reconnect() {
     client.subscribe("cdl/rele1out");
     client.subscribe("cdl/rele2out");
     client.subscribe("cdl/rele3out");
+    client.subscribe("cdl/rele4out");
+    client.subscribe("cdl/rele5out");
+    client.subscribe("cdl/rele6out");
     }
     else {
       Serial.print("failed, rc=");                          //DEBUG
@@ -246,17 +342,26 @@ void loop() {
 	//Actualiza el estado de los relés cuando ocurre una interrupción (cambio de estado un botón)
 	if (interrupcion1) {toggle_rele(1);interrupcion1 = false;}	
 	if (interrupcion2) {toggle_rele(2);interrupcion2 = false;}
-	if (interrupcion3) {toggle_rele(3);interrupcion3 = false;}
+  if (interrupcion3) {toggle_rele(3);interrupcion3 = false;}
+  if (interrupcion4) {toggle_rele(4);interrupcion4 = false;}
+  if (interrupcion5) {toggle_rele(5);interrupcion5 = false;}
+  if (interrupcion6) {toggle_rele(6);interrupcion6 = false;}
 
 	//Envia el estado de los reles
     if (cambio && (millis() > tiempo_envio_anterior + 3000)) {
       enviar_estado(rele1, "cdl/rele1in");
       enviar_estado(rele2, "cdl/rele2in");
       enviar_estado(rele3, "cdl/rele3in");
+      enviar_estado(rele4, "cdl/rele4in");
+      enviar_estado(rele5, "cdl/rele5in");
+      enviar_estado(rele6, "cdl/rele6in");
       tiempo_envio_anterior = millis();
       Serial.print("Rele1: ");Serial.println(rele1);
       Serial.print("Rele2: ");Serial.println(rele2);
       Serial.print("Rele3: ");Serial.println(rele3);
+      Serial.print("Rele4: ");Serial.println(rele4);
+      Serial.print("Rele5: ");Serial.println(rele5);
+      Serial.print("Rele6: ");Serial.println(rele6);
       cambio = false;
     }
 	  
