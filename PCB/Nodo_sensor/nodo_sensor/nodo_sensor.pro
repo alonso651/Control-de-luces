@@ -1,4 +1,4 @@
-update=07/05/2019 17:39:46
+update=07/05/2019 20:38:02
 version=1
 last_client=kicad
 [general]
@@ -15,7 +15,7 @@ LibDir=
 [pcbnew]
 version=1
 PageLayoutDescrFile=
-LastNetListRead=
+LastNetListRead=nodo_sensor.net
 CopperLayerCount=2
 BoardThickness=1.6
 AllowMicroVias=0
