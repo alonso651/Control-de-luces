@@ -26,9 +26,9 @@ cdl/rele3out
 #define pin_rele2 4   //D2
 #define pin_rele3 0   //D3
 #define pin_rele4 2   //D4
-#define pin_rele5 14 //D5
+#define pin_rele5 16  //D0
 #define pin_rele6 10  //SD3
-#define pin_llave1 16  //D0
+#define pin_llave1 14 //D5
 #define pin_llave2 12 //D6
 #define pin_llave3 13 //D7
 #define pin_llave4 15 //D8
